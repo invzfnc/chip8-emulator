@@ -63,6 +63,9 @@ void Chip8::cycle() {
     // fetch 2 bytes opcode
     opcode = memory[program_counter] << 8 | memory[program_counter+1];
 
+    // advance to next instruction
+    program_counter += 2;
+
     // decode and execute opcode
     switch (opcode & 0xF000) {
         case 0x0000:
@@ -72,26 +75,23 @@ void Chip8::cycle() {
                     for (int y = 0; y < SCREEN_HEIGHT; y++)
                         for (int x = 0; x < SCREEN_WIDTH; x++)
                             screen[y][x] = 0;
-                    program_counter += 2;
                     break;
                 /* RET: return from subroutine */
                 case 0x00EE:
                     stack_pointer--;
                     program_counter = stack[stack_pointer];
-                    program_counter += 2;
                     break;
                 default:
                     printf("Unknown opcode [0x0000]: 0x%X\n", opcode);
-                    program_counter += 2;
                 /* SYS addr - 0nnn is ignored */
             }
             break;
-        /* JP addr (1NNN): jump to address NNN */
+        /* JP addr (1Nnn): jump to address nnn */
         case 0x1000:
             program_counter = opcode & 0x0FFF;
             break;
 
-        /* CALL addr (2NNN): call subroutine at NNN */
+        /* CALL addr (2nnn): call subroutine at nnn */
         case 0x2000:
             stack[stack_pointer] = program_counter;
             stack_pointer++;
@@ -102,8 +102,90 @@ void Chip8::cycle() {
         case 0x3000:
             if (registers[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
                 program_counter += 2;
-            program_counter += 2;
             break;
+
+        /* SNE Vx, byte (4xkk): skip next instruction if Vx != kk */
+        case 0x4000:
+            if (registers[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF))
+                program_counter += 2;
+            break;
+
+        /* SE Vx, Vy (5xy0): skip next instruction if Vx == Vy */
+        case 0x5000:
+            if (registers[(opcode & 0x0F00) >> 8] == registers[(opcode & 0x00F0) >> 4])
+                program_counter += 2;
+            break;
+        /* LD Vx, byte (6xkk): load the value kk into register Vx */
+
+        case 0x6000:
+            registers[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
+            break;
+
+        /* ADD Vx, byte (7xkk): add value kk to the register Vx */
+        case 0x7000:
+            registers[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
+            break;
+
+        case 0x8000:
+            switch (opcode & 0x000F) {
+                /* ED Vx, Vy (8xy0): Vx = Vy */
+                case 0x0000:
+                    registers[(opcode & 0x0F00) >> 8] = registers[(opcode & 0x00F0) >> 4];
+                    break;
+
+                /* OR Vx, Vy (8xy1): Vx = Vx OR Vy */
+                case 0x0001:
+                    registers[(opcode & 0x0F00) >> 8] |= registers[(opcode & 0x00F0) >> 4];
+                    break;
+
+                /* AND Vx, Vy (8xy2): Vx = Vx AND Vy */
+                case 0x0002:
+                    registers[(opcode & 0x0F00) >> 8] &= registers[(opcode & 0x00F0) >> 4];
+                    break;
+
+                /* XOR Vx, Vy (8xy3): Vx = Vx XOR Vy */
+                case 0x0003:
+                    registers[(opcode & 0x0F00) >> 8] ^= registers[(opcode & 0x00F0) >> 4];
+                    break;
+
+                /* ADD Vx, Vy (8xy4): Vx += Vy, set VF = carry */
+                case 0x0004:
+                    if (registers[(opcode & 0x00F0) >> 4] > 0xFF - registers[(opcode & 0x0F00) >> 8])
+                        registers[0xF] = 1;
+                    else
+                        registers[0xF] = 0;
+                    registers[(opcode & 0x0F00) >> 8] += registers[(opcode & 0x00F0) >> 4];
+                    break;
+
+                /* SUB Vx, Vy (8xy5): Vx -= Vy, set VF = NOT borrow */
+                case 0x0005:
+                    registers[0xF] = registers[(opcode & 0x0F00) >> 8] >= registers[(opcode & 0x00F0) >> 4];
+                    registers[(opcode & 0x0F00) >> 8] -= registers[(opcode & 0x00F0) >> 4];
+                    break;
+
+                /* SHR Vx {, Vy} (8xy6): shift Vx to right by one. VF is set to the value of least significant bit of Vx before the shift*/
+                case 0x0006:
+                    registers[0xF] = registers[(opcode & 0x0F00) >> 8] & 0x1;
+                    registers[(opcode & 0x0F00) >> 8] >>= 1;
+                    break;
+
+                /* SUBN Vx, Vy (8xy7): Vx = Vy - Vx, set VF = NOT borrow */
+                case 0x0007:
+                    registers[0xF] = registers[(opcode & 0x0F00) >> 8] <= registers[(opcode & 0x00F0) >> 4];
+                    registers[(opcode & 0x0F00) >> 8] = registers[(opcode & 0x00F0) >> 4] - registers[(opcode & 0x0F00) >> 8];
+                    break;
+
+                /* SHL Vx {, Vy} (8xyE): shift Vx to left by one. VF is set to the value of most significant bit of Vx before the shift*/
+                case 0x000E:
+                    registers[0xF] = registers[(opcode & 0x0F00) >> 8] >> 7;
+                    registers[(opcode & 0x0F00) >> 8] <<= 1;
+                    break;
+
+                default:
+                    printf("Unknown opcode [0x8000]: 0x%X\n", opcode);
+            }
+            break;
+
     }
 }
 
