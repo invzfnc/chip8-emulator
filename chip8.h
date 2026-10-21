@@ -6,10 +6,10 @@ class Chip8 {
 
         static constexpr int SCREEN_WIDTH = 64;
         static constexpr int SCREEN_HEIGHT = 32;
-        static constexpr int MEMORY = 4096;
-        static constexpr int REGISTERS = 16;
+        static constexpr int MEMORY_SIZE = 4096;
+        static constexpr int REGISTER_SIZE = 16;
         static constexpr int STACK_SIZE = 16;
-        static constexpr int KEYS = 16;
+        static constexpr int KEYS_TOTAL = 16;
 
         void init();
         void cycle();
@@ -18,8 +18,8 @@ class Chip8 {
 
     private:
         unsigned short opcode;
-        unsigned char memory[MEMORY];
-        unsigned char registers[REGISTERS];
+        unsigned char memory[MEMORY_SIZE];
+        unsigned char registers[REGISTER_SIZE];
         unsigned short index_register;
         unsigned short program_counter;
 
@@ -31,6 +31,6 @@ class Chip8 {
         unsigned short stack[STACK_SIZE];
         unsigned short stack_pointer;
 
-        unsigned char key[KEYS];
+        unsigned char key[KEYS_TOTAL];
 
 };

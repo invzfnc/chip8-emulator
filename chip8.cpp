@@ -1,5 +1,6 @@
 #include "chip8.h"
 #include <cstdio>
+#include <string>
 
 unsigned char fontset[80] =
 { 
@@ -39,12 +40,16 @@ void Chip8::init() {
         stack[i] = 0;
 
     // clear keys
-    for (int i = 0; i < KEYS; i++)
+    for (int i = 0; i < KEYS_TOTAL; i++)
         key[i] = 0;
 
     // clear memory
-    for (int i = 0; i < MEMORY; i++)
+    for (int i = 0; i < MEMORY_SIZE; i++)
         memory[i] = 0;
+
+    // clear registers 
+    for (int i = 0; i < REGISTER_SIZE; i++)
+        registers[i] = 0;
 
     // load fontset
     for (int i = 0; i < 80; i++)
@@ -77,6 +82,7 @@ void Chip8::cycle() {
                     break;
                 default:
                     printf("Unknown opcode [0x0000]: 0x%X\n", opcode);
+                    program_counter += 2;
                 /* SYS addr - 0nnn is ignored */
             }
             break;
