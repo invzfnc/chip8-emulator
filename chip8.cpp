@@ -1,4 +1,5 @@
 #include "chip8.h"
+#include <cstdio>
 
 unsigned char fontset[80] =
 { 
@@ -53,8 +54,51 @@ void Chip8::init() {
     sound_timer = 0;
 }
 
-void cycle() {
-    // fetch, decode, execute, update
+void Chip8::cycle() {
+    // fetch 2 bytes opcode
+    opcode = memory[program_counter] << 8 | memory[program_counter+1];
+
+    // decode and execute opcode
+    switch (opcode & 0xF000) {
+        case 0x0000:
+            switch (opcode) {
+                /* CLS: clear screen */
+                case 0x00E0:
+                    for (int y = 0; y < SCREEN_HEIGHT; y++)
+                        for (int x = 0; x < SCREEN_WIDTH; x++)
+                            screen[y][x] = 0;
+                    program_counter += 2;
+                    break;
+                /* RET: return from subroutine */
+                case 0x00EE:
+                    stack_pointer--;
+                    program_counter = stack[stack_pointer];
+                    program_counter += 2;
+                    break;
+                default:
+                    printf("Unknown opcode [0x0000]: 0x%X\n", opcode);
+                /* SYS addr - 0nnn is ignored */
+            }
+            break;
+        /* JP addr (1NNN): jump to address NNN */
+        case 0x1000:
+            program_counter = opcode & 0x0FFF;
+            break;
+
+        /* CALL addr (2NNN): call subroutine at NNN */
+        case 0x2000:
+            stack[stack_pointer] = program_counter;
+            stack_pointer++;
+            program_counter = opcode & 0x0FFF;
+            break;
+
+        /* SE Vx, byte (3xkk): skip next instruction if Vx == kk */
+        case 0x3000:
+            if (registers[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
+                program_counter += 2;
+            program_counter += 2;
+            break;
+    }
 }
 
 bool Chip8::load_rom(const std::string &path) {
