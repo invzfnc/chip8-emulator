@@ -1,0 +1,6 @@
+ignore/
+out/
+bin/
+*.exe
+*.out
+*.swp
