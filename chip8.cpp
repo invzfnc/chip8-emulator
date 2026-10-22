@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <iostream>
 
 unsigned char fontset[80] =
 { 
@@ -22,6 +23,8 @@ unsigned char fontset[80] =
     0xF0, 0x80, 0xF0, 0x80, 0xF0, //E
     0xF0, 0x80, 0xF0, 0x80, 0x80  //F
 };
+
+Chip8::Chip8() { }
 
 void Chip8::init() {
     program_counter = 0x200;
@@ -342,7 +345,8 @@ void Chip8::cycle() {
 }
 
 bool Chip8::load_rom(const std::string &path) {
-    // TODO
+    init();
+    std::cout << "Loading " << path << '\n';
     return true;
 }
 
