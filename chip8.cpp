@@ -1,5 +1,6 @@
 #include "chip8.h"
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 
 unsigned char fontset[80] =
@@ -41,7 +42,7 @@ void Chip8::init() {
 
     // clear keys
     for (int i = 0; i < KEYS_TOTAL; i++)
-        key[i] = 0;
+        keys[i] = 0;
 
     // clear memory
     for (int i = 0; i < MEMORY_SIZE; i++)
@@ -186,10 +187,129 @@ void Chip8::cycle() {
             }
             break;
 
+        /* SNE Vx, Vy (9xy0): skip next instruction if Vx != Vy */
+        case 0x9000:
+            if (registers[(opcode & 0x0F00) >> 8] != registers[(opcode & 0x00F0) >> 4])
+                program_counter += 2;
+            break;
+
+        /* LD I, addr (Annn): set register I = nnn */
+        case 0xA000:
+            index_register = opcode & 0x0FFF;
+            break;
+
+        /* JP V0, addr (Bnnn): jump to location nnn + V0 */
+        case 0xB000:
+            program_counter = (opcode & 0x0FFF) + registers[0];
+            break;
+
+        /* RND Vx, byte (Cxkk): set Vx = random byte AND kk */
+        case 0xC000:
+            registers[(opcode & 0x0F00) >> 8] = (opcode & 0x00FF) & std::rand();
+            break;
+
+        /* DRW Vx, Vy, nibble (Dxyn): display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision */
+        case 0xD000:
+            // TODO
+            break;
+
+        case 0xE000:
+            switch (opcode & 0x00FF) {
+                /* SKP Vx (Ex9E): skip next instruction if key with the value of Vx is pressed */
+                case 0x9E:
+                    if (keys[registers[(opcode & 0x0F00) >> 8]] != 0)
+                        program_counter += 2;
+                    break;
+                /* SKNP Vx (ExA1): skip next instruction if key with the value of Vx is not pressed */
+                case 0xA1:
+                    if (keys[registers[(opcode & 0x0F00) >> 8]] == 0)
+                        program_counter += 2;
+                    break;
+                default:
+                    printf("Unknown opcode [0xE000]: 0x%X\n", opcode);
+            }
+            break;
+
+        case 0xF000:
+            switch (opcode & 0x00FF) {
+                /* LD Vx, DT (Fx07): set Vx = delay timer value */
+                case 0x07:
+                    registers[(opcode & 0x0F00) >> 8] = delay_timer;
+                    break;
+
+                /* LD Vx, K (Fx0A): wait for a key press, store the value of the key in Vx */
+                case 0x0A: {
+                    bool key_pressed = false;
+
+                    for (int i = 0; i < KEYS_TOTAL; i++) {
+                        if (keys[i] != 0) {
+                            registers[(opcode & 0x0F00) >> 8] = i;
+                            key_pressed = true;
+                            break;
+                        }
+                    }
+
+                    if (!key_pressed) {
+                        program_counter -= 2;  // run this instruction again on next cycle
+                        return;
+                    }
+                    break;
+                }
+
+                /* LD DT, Vx (Fx15): set delay timer = Vx */
+                case 0x15:
+                    delay_timer = registers[(opcode & 0x0F00) >> 8];
+                    break;
+
+                /* LD ST, Vx (Fx18): set sound timer = Vx */
+                case 0x18:
+                    sound_timer = registers[(opcode & 0x0F00) >> 8];
+                    break;
+
+                /* ADD I, Vx (Fx1E): I += Vx */
+                case 0x1E:
+                    index_register += registers[(opcode & 0x0F00) >> 8];
+                    break;
+
+                /* LD F, Vx (Fx29): I = location of sprite for digit Vx */
+                case 0x29:
+                    index_register = registers[(opcode & 0x0F00) >> 8] * 5;
+                    break;
+
+                /* LD B, Vx (Fx33): store BCD representation/decimal digits of Vx in memory I, I+1, and I+2 */
+                case 0x33: {
+                    const auto n = registers[(opcode & 0x0F00) >> 8];
+
+                    memory[index_register] = n / 100;
+                    memory[index_register + 1] = n / 10 % 10;
+                    memory[index_register + 2] = n % 10;
+                    break;
+               }
+
+                /* LD [I], Vx (Fx55): store values of V0 to VX to memory starting at address I */
+                case 0x55:
+                    for (int i = 0; i <= ((opcode & 0x0F00) >> 8); i++) {
+                        memory[index_register + i] = registers[i];
+                    }
+                    break;
+
+                /* LD Vx, [I] (Fx65): fill V0 to VX with values from memory starting at address I */
+                case 0x65:
+                    for (int i = 0; i <= ((opcode & 0x0F00) >> 8); i++) {
+                        registers[i] = memory[index_register + i];
+                    }
+                    break;
+
+                default:
+                    printf("Unknown opcode [0xF000]: 0x%X\n", opcode);
+            }
+            break;
+
     }
 }
 
 bool Chip8::load_rom(const std::string &path) {
+    // TODO
     return true;
 }
 

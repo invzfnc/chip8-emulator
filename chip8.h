@@ -31,6 +31,6 @@ class Chip8 {
         unsigned short stack[STACK_SIZE];
         unsigned short stack_pointer;
 
-        unsigned char key[KEYS_TOTAL];
+        unsigned char keys[KEYS_TOTAL];
 
 };
