@@ -68,23 +68,23 @@ void Chip8::cycle() {
     program_counter += 2;
 
     // decode and execute opcode
-    switch (opcode & 0xF000) {
+    switch (opcode & 0x00FF) {
         case 0x0000:
-            switch (opcode) {
+            switch (opcode & 0x00FF) {
                 /* CLS: clear screen */
-                case 0x00E0:
+                case 0xE0:
                     for (int y = 0; y < SCREEN_HEIGHT; y++)
                         for (int x = 0; x < SCREEN_WIDTH; x++)
                             screen[y][x] = 0;
                     break;
                 /* RET: return from subroutine */
-                case 0x00EE:
+                case 0xEE:
                     stack_pointer--;
                     program_counter = stack[stack_pointer];
                     break;
+                /* SYS addr (0nnn) is ignored */
                 default:
-                    printf("Unknown opcode [0x0000]: 0x%X\n", opcode);
-                /* SYS addr - 0nnn is ignored */
+                    break;
             }
             break;
         /* JP addr (1Nnn): jump to address nnn */
@@ -113,11 +113,15 @@ void Chip8::cycle() {
 
         /* SE Vx, Vy (5xy0): skip next instruction if Vx == Vy */
         case 0x5000:
+            if ((opcode & 0x000F) != 0) {
+                printf("Unknown opcode [0x5000]: 0x%X\n", opcode);
+                return;
+            }
             if (registers[(opcode & 0x0F00) >> 8] == registers[(opcode & 0x00F0) >> 4])
                 program_counter += 2;
             break;
-        /* LD Vx, byte (6xkk): load the value kk into register Vx */
 
+        /* LD Vx, byte (6xkk): load the value kk into register Vx */
         case 0x6000:
             registers[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
             break;
@@ -189,6 +193,10 @@ void Chip8::cycle() {
 
         /* SNE Vx, Vy (9xy0): skip next instruction if Vx != Vy */
         case 0x9000:
+            if ((opcode & 0x000F) != 0) {
+                printf("Unknown opcode [0x9000]: 0x%X\n", opcode);
+                return;
+            }
             if (registers[(opcode & 0x0F00) >> 8] != registers[(opcode & 0x00F0) >> 4])
                 program_counter += 2;
             break;
@@ -304,6 +312,9 @@ void Chip8::cycle() {
                     printf("Unknown opcode [0xF000]: 0x%X\n", opcode);
             }
             break;
+
+        default:
+            printf("Unknown opcode: 0x%X\n", opcode);
 
     }
 }
