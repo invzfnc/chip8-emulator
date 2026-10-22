@@ -68,7 +68,7 @@ void Chip8::cycle() {
     program_counter += 2;
 
     // decode and execute opcode
-    switch (opcode & 0x00FF) {
+    switch (opcode & 0xF000) {
         case 0x0000:
             switch (opcode & 0x00FF) {
                 /* CLS: clear screen */
@@ -216,10 +216,32 @@ void Chip8::cycle() {
             registers[(opcode & 0x0F00) >> 8] = (opcode & 0x00FF) & std::rand();
             break;
 
-        /* DRW Vx, Vy, nibble (Dxyn): display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision */
-        case 0xD000:
-            // TODO
+        /* DRW Vx, Vy, nibble (Dxyn): display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision (lit pixel is wiped out) */
+        case 0xD000: {
+            const auto x_start = registers[(opcode & 0x0F00) >> 8] % SCREEN_WIDTH;
+            const auto y_start = registers[(opcode & 0x00F0) >> 4] % SCREEN_HEIGHT;
+            const auto height = opcode & 0x000F;
+
+            registers[0xF] = 0;
+
+            for (int row = 0; row < height; row++) {
+                const auto sprite_byte = memory[index_register + row];
+
+                for (int col = 0; col < 8; col++) {
+                    if ((sprite_byte & (0x80 >> col)) == 0)
+                        continue;  // no toggle
+
+                    const int x = (x_start + col) % SCREEN_WIDTH;
+                    const int y = (y_start + row) % SCREEN_HEIGHT;
+
+                    if (screen[y][x] != 0)  // lit pixel wiped out
+                        registers[0xF] = 1;
+
+                    screen[y][x] ^= 1;  // flip the pixel
+                }
+            }
             break;
+        }
 
         case 0xE000:
             switch (opcode & 0x00FF) {
