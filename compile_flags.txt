@@ -1,0 +1,4 @@
+-x
+c++
+-std=c++17
+-IC:/msys64/ucrt64/include
