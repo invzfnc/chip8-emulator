@@ -1,5 +1,10 @@
+CXX	     := C:/msys64/ucrt64/bin/g++.exe
 CXXFLAGS := -std=c++17 -Wall -Wextra
-TARGET   := chip8
+
+SDL_INCLUDES := -IC:/msys64/ucrt64/include
+SDL_LIBS:=      -LC:/msys64/ucrt64/lib -lSDL3
+
+TARGET   := chip8.exe
 SOURCES  := main.cpp chip8.cpp
 HEADERS  := chip8.h
 
@@ -8,7 +13,7 @@ HEADERS  := chip8.h
 all: $(TARGET)
 
 $(TARGET): $(SOURCES) $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(SDL_INCLUDES) $(SOURCES) -o $(TARGET) $(SDL_LIBS)
 
 clean:
 	#rm -f $(TARGET) $(TARGET).exe
