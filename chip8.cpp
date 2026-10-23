@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <fstream>
 
 unsigned char fontset[80] =
 { 
@@ -24,7 +25,9 @@ unsigned char fontset[80] =
     0xF0, 0x80, 0xF0, 0x80, 0x80  //F
 };
 
-Chip8::Chip8() { }
+Chip8::Chip8() { 
+    init();
+}
 
 void Chip8::init() {
     program_counter = 0x200;
@@ -345,8 +348,35 @@ void Chip8::cycle() {
 }
 
 bool Chip8::load_rom(const std::string &path) {
-    init();
     std::cout << "Loading " << path << '\n';
+
+    constexpr unsigned short ROM_START = 0x200;  // starts at byte 512
+
+    std::ifstream rom { path, std::ios::binary | std::ios::ate };  // load to the end to read size
+
+    if (!rom)
+        return false;
+
+    const std::streampos size = rom.tellg();  // get current read position (= size)
+
+    if (size < 0 || size > MEMORY_SIZE - ROM_START)
+        return false;
+
+    char *buffer = new char[size];
+
+    rom.seekg(0, std::ios::beg);   // move read position back to beginning
+
+    if (!rom.read(buffer, size)) {  // fill the buffer
+        delete[] buffer;
+        return false;
+    }
+
+    for (std::streamsize i = 0; i < size; i++)
+        memory[ROM_START + i] = buffer[i];
+
+    delete[] buffer;
+    program_counter = ROM_START;
+
     return true;
 }
 
