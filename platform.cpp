@@ -1,6 +1,7 @@
 #include "platform.h"
 #include "chip8.h"
 #include <SDL3/SDL_render.h>
+#include <SDL3/SDL_surface.h>
 
 Platform::Platform(const char *title, int window_width, int window_height) {
     if (!SDL_Init(SDL_INIT_VIDEO))  {
@@ -15,6 +16,9 @@ Platform::Platform(const char *title, int window_width, int window_height) {
                                 SDL_TEXTUREACCESS_STREAMING,   // https://wiki.libsdl.org/SDL3/SDL_TextureAccess
                                 Chip8::SCREEN_WIDTH,
                                 Chip8::SCREEN_HEIGHT);
+
+    // turn off smooth scaling
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
 }
 
 Platform::~Platform() {

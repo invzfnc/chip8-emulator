@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <iostream>
 #include <fstream>
 
 unsigned char fontset[80] =
@@ -348,8 +347,6 @@ void Chip8::cycle() {
 }
 
 bool Chip8::load_rom(const std::string &path) {
-    std::cout << "Loading " << path << '\n';
-
     constexpr unsigned short ROM_START = 0x200;  // starts at byte 512
 
     std::ifstream rom { path, std::ios::binary | std::ios::ate };  // load to the end to read size
