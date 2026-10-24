@@ -1,6 +1,9 @@
 ignore/
 out/
 bin/
+
 *.exe
 *.out
+
+*.vim
 *.swp
