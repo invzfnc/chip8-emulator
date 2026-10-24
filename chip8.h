@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 
 class Chip8 {
@@ -11,6 +12,8 @@ class Chip8 {
         static constexpr int STACK_SIZE = 16;
         static constexpr int KEYS_TOTAL = 16;
 
+        unsigned char screen[SCREEN_HEIGHT][SCREEN_WIDTH];
+
         void init();
         void cycle();
 
@@ -22,8 +25,6 @@ class Chip8 {
         unsigned char registers[REGISTER_SIZE];
         unsigned short index_register;
         unsigned short program_counter;
-
-        unsigned char screen[SCREEN_HEIGHT][SCREEN_WIDTH];
 
         unsigned char delay_timer;
         unsigned char sound_timer;
