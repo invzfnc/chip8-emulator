@@ -13,6 +13,7 @@ class Chip8 {
         static constexpr int KEYS_TOTAL = 16;
 
         unsigned char screen[SCREEN_HEIGHT][SCREEN_WIDTH];
+        unsigned char keys[KEYS_TOTAL];
 
         void init();
         void cycle();
@@ -31,7 +32,5 @@ class Chip8 {
 
         unsigned short stack[STACK_SIZE];
         unsigned short stack_pointer;
-
-        unsigned char keys[KEYS_TOTAL];
-
 };
+
