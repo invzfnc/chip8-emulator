@@ -5,8 +5,8 @@ SDL_INCLUDES := -IC:/msys64/ucrt64/include
 SDL_LIBS:=      -LC:/msys64/ucrt64/lib -lSDL3
 
 TARGET   := chip8.exe
-SOURCES  := main.cpp chip8.cpp
-HEADERS  := chip8.h
+SOURCES  := main.cpp chip8.cpp platform.cpp
+HEADERS  := chip8.h platform.h
 
 .PHONY: all clean
 
