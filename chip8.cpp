@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <string>
 #include <fstream>
+#include <ctime>
 
 unsigned char fontset[80] =
 { 
@@ -29,6 +30,8 @@ Chip8::Chip8() {
 }
 
 void Chip8::init() {
+    std::srand(std::time(nullptr));
+
     program_counter = 0x200;
     opcode = 0;
     index_register = 0;
