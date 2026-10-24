@@ -15,6 +15,9 @@ class Chip8 {
         unsigned char screen[SCREEN_HEIGHT][SCREEN_WIDTH];
         unsigned char keys[KEYS_TOTAL];
 
+        unsigned char delay_timer;
+        unsigned char sound_timer;
+
         void init();
         void cycle();
 
@@ -26,9 +29,6 @@ class Chip8 {
         unsigned char registers[REGISTER_SIZE];
         unsigned short index_register;
         unsigned short program_counter;
-
-        unsigned char delay_timer;
-        unsigned char sound_timer;
 
         unsigned short stack[STACK_SIZE];
         unsigned short stack_pointer;

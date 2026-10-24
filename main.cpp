@@ -89,6 +89,10 @@ int main(int argc, char *argv[]) {
         // update screen
         platform.update(chip8.screen);
 
+        // update timers
+        chip8.delay_timer--;
+        chip8.sound_timer--;
+
         // throttle so it does not go insanely fast
         unsigned int frame_time = SDL_GetTicks() - frame_start;
         if (frame_time < frame_delay)
