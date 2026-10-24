@@ -24,12 +24,21 @@ Platform::~Platform() {
     SDL_Quit();
 }
 
-void Platform::update(unsigned char buffer[][Chip8::SCREEN_WIDTH], int pitch) {
+void Platform::update(unsigned char screen[][Chip8::SCREEN_WIDTH]) {
     // put screen buffer onto texture
+    unsigned int buffer[Chip8::SCREEN_HEIGHT][Chip8::SCREEN_WIDTH];
+
+    // convert raw buffer to match texture grid
+    for (int y = 0; y < Chip8::SCREEN_HEIGHT; y++) {
+        for (int x = 0; x < Chip8::SCREEN_WIDTH; x++) {
+            buffer[y][x] = (screen[y][x] ? 0xFFFFFFFF : 0xFF000000);
+        }
+    }
+
     SDL_UpdateTexture(texture, nullptr, buffer, pitch);
 
-    // set the draw color to black (abgr)
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
+    // set the draw color to black (rgba)
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     // paint the whole screen black
     SDL_RenderClear(renderer);
 

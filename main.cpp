@@ -12,6 +12,13 @@ int main() {
     bool res = chip8.load_rom("bin/chip8-logo.ch8");
     std::cout << res << '\n';
 
-    int pitch = 4 * Chip8::SCREEN_WIDTH;  // 4 because renderer uses AGRB which is 4 bytes long to represent one pixel
-    platform.update(chip8.screen, pitch);
+    if (res) {
+        for (int i = 0; i < 20; i++) {
+            chip8.cycle();
+        }
+    }
+
+    platform.update(chip8.screen);
+
+    SDL_Delay(10000);
 }
